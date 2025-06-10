@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { sectionData } from '@/data/section-questions';
 import { SectionDatabaseService } from '@/lib/section-database-service';
+import { CertificateManager } from '@/lib/certificate-manager';
 
 interface UserInfo {
   id: string;
@@ -59,6 +60,7 @@ export default function MyScoresPage() {
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [masterCertificateAvailable, setMasterCertificateAvailable] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -87,6 +89,10 @@ export default function MyScoresPage() {
       
       const userInfo = JSON.parse(storedUserInfo);
       setUserInfo(userInfo);
+      
+      // Check if master certificate is permanently available
+      const masterCertAvailable = CertificateManager.hasMasterCertificate(userInfo.id);
+      setMasterCertificateAvailable(masterCertAvailable);
       
       // Load section completion data from localStorage
       loadSectionData();
@@ -127,7 +133,7 @@ export default function MyScoresPage() {
     const overallAccuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
     const averageTime = totalSections > 0 ? Math.round(totalTime / totalSections) : 0;
     const bestAccuracy = completions.length > 0 ? Math.max(...completions.map(c => c.accuracy)) : 0;
-
+    
     const newStats = {
       totalSectionsCompleted: totalSections,
       totalQuestionsAnswered: totalQuestions,
@@ -139,6 +145,16 @@ export default function MyScoresPage() {
       currentStreak: totalSections // Simple implementation - could be enhanced
     };
 
+    // Check and award master certificate if eligible
+    if (userInfo?.id) {
+      const masterCertAvailable = CertificateManager.checkAndAwardMasterCertificate(userInfo.id, totalSections, overallAccuracy);
+      setMasterCertificateAvailable(masterCertAvailable);
+      
+      if (totalSections >= 6 && overallAccuracy >= 60 && masterCertAvailable) {
+        console.log('🏆 Master certificate is permanently available for user:', userInfo.id);
+      }
+    }
+
     // Update the state with calculated statistics
     setOverallStats(newStats);
     
@@ -149,6 +165,11 @@ export default function MyScoresPage() {
     const participantName = userInfo?.name || 'Learning Participant';
     const completionDate = new Date();
     const courseTitle = 'GitHub Copilot Master Course';
+    
+    // Track certificate download
+    if (userInfo?.id) {
+      CertificateManager.incrementMasterCertificateDownload(userInfo.id);
+    }
     
     const certificateHTML = `
       <!DOCTYPE html>
@@ -856,17 +877,19 @@ export default function MyScoresPage() {
               </div>
 
               {/* Course Completion Certificate */}
-              {overallStats.totalSectionsCompleted === 6 && (
+              {masterCertificateAvailable && (
                 <div className="mt-8 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border border-yellow-200/50 dark:border-yellow-700/50">
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-3 mb-4">
                       <span className="text-5xl">🏆</span>
                       <div>
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                          Course Completed!
+                          Master Certificate Available!
                         </h3>
                         <p className="text-lg text-gray-600 dark:text-gray-300">
-                          Congratulations! You've mastered all 6 sections
+                          {overallStats.totalSectionsCompleted >= 6 && overallStats.overallAccuracy >= 60
+                            ? `Congratulations! You've mastered all 6 sections with ${overallStats.overallAccuracy}% accuracy!` 
+                            : "Your certificate is permanently available - download anytime!"}
                         </p>
                       </div>
                     </div>
@@ -896,43 +919,90 @@ export default function MyScoresPage() {
                     >
                       <span className="flex items-center gap-3">
                         <span>🎓</span>
-                        <span>Download Complete Course Certificate</span>
+                        <span>Download Master Certificate</span>
                       </span>
                     </button>
                     
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
-                      Official GitHub Copilot Master Certificate - Ready for LinkedIn & Portfolio
+                      ✅ Permanently Available - Download anytime after login | LinkedIn & Portfolio Ready
                     </p>
                   </div>
                 </div>
               )}
 
               {/* Progress toward completion */}
-              {overallStats.totalSectionsCompleted < 6 && (
+              {!masterCertificateAvailable && (
                 <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200/50 dark:border-blue-700/50">
                   <div className="text-center">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                      🎯 Course Progress
+                      🎯 Master Certificate Requirements
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
-                      Complete all 6 sections to earn your GitHub Copilot Master Certificate
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
+                      Complete all 6 sections with 60%+ overall accuracy to earn your GitHub Copilot Master Certificate
                     </p>
                     
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-4">
-                      <div 
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 h-4 rounded-full transition-all duration-300"
-                        style={{ width: `${(overallStats.totalSectionsCompleted / 6) * 100}%` }}
-                      ></div>
+                    {/* Requirements Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      {/* Sections Progress */}
+                      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4">
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Sections Completed</div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-2">
+                          <div 
+                            className={`h-3 rounded-full transition-all duration-300 ${
+                              overallStats.totalSectionsCompleted >= 6 
+                                ? 'bg-gradient-to-r from-green-500 to-green-600' 
+                                : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                            }`}
+                            style={{ width: `${(overallStats.totalSectionsCompleted / 6) * 100}%` }}
+                          ></div>
+                        </div>
+                        <div className={`text-lg font-bold ${
+                          overallStats.totalSectionsCompleted >= 6 ? 'text-green-600' : 'text-blue-600'
+                        }`}>
+                          {overallStats.totalSectionsCompleted}/6 Sections
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {overallStats.totalSectionsCompleted >= 6 ? '✅ Complete' : `${6 - overallStats.totalSectionsCompleted} remaining`}
+                        </div>
+                      </div>
+
+                      {/* Accuracy Progress */}
+                      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4">
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Overall Accuracy</div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-2">
+                          <div 
+                            className={`h-3 rounded-full transition-all duration-300 ${
+                              overallStats.overallAccuracy >= 60 
+                                ? 'bg-gradient-to-r from-green-500 to-green-600' 
+                                : 'bg-gradient-to-r from-orange-500 to-red-500'
+                            }`}
+                            style={{ width: `${Math.min(overallStats.overallAccuracy, 100)}%` }}
+                          ></div>
+                        </div>
+                        <div className={`text-lg font-bold ${
+                          overallStats.overallAccuracy >= 60 ? 'text-green-600' : 'text-orange-600'
+                        }`}>
+                          {overallStats.overallAccuracy}% Accuracy
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {overallStats.overallAccuracy >= 60 ? '✅ Requirement Met' : `Need ${60 - overallStats.overallAccuracy}% more`}
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {overallStats.totalSectionsCompleted}/6 Sections Complete 
-                      ({Math.round((overallStats.totalSectionsCompleted / 6) * 100)}%)
+
+                    {/* Overall Progress */}
+                    <div className="text-center">
+                      <div className={`text-lg font-semibold ${
+                        CertificateManager.meetsMasterCertificateRequirements(overallStats.totalSectionsCompleted, overallStats.overallAccuracy)
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-gray-900 dark:text-white'
+                      }`}>
+                        {CertificateManager.meetsMasterCertificateRequirements(overallStats.totalSectionsCompleted, overallStats.overallAccuracy)
+                          ? '🎉 All Requirements Met! Master Certificate Available!'
+                          : 'Complete requirements above to unlock Master Certificate'
+                        }
+                      </div>
                     </div>
-                    
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                      {6 - overallStats.totalSectionsCompleted} more section{6 - overallStats.totalSectionsCompleted !== 1 ? 's' : ''} to go!
-                    </p>
                   </div>
                 </div>
               )}
@@ -942,7 +1012,7 @@ export default function MyScoresPage() {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">🏆 Achievements</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className={`p-4 rounded-lg border-2 ${overallStats.totalSectionsCompleted >= 1 ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-300 bg-gray-50 dark:bg-gray-700'}`}>
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🌟</span>
@@ -953,22 +1023,32 @@ export default function MyScoresPage() {
                   </div>
                 </div>
                 
-                <div className={`p-4 rounded-lg border-2 ${overallStats.overallAccuracy >= 80 ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-300 bg-gray-50 dark:bg-gray-700'}`}>
+                <div className={`p-4 rounded-lg border-2 ${overallStats.overallAccuracy >= 60 ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-300 bg-gray-50 dark:bg-gray-700'}`}>
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🎯</span>
                     <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">Accuracy Master</div>
+                      <div className="font-semibold text-gray-900 dark:text-white">Certificate Eligible</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">Achieve 60%+ overall accuracy</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`p-4 rounded-lg border-2 ${overallStats.overallAccuracy >= 80 ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-300 bg-gray-50 dark:bg-gray-700'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🏆</span>
+                    <div>
+                      <div className="font-semibold text-gray-900 dark:text-white">Excellence</div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">Achieve 80%+ accuracy</div>
                     </div>
                   </div>
                 </div>
                 
-                <div className={`p-4 rounded-lg border-2 ${overallStats.totalSectionsCompleted >= 3 ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-300 bg-gray-50 dark:bg-gray-700'}`}>
+                <div className={`p-4 rounded-lg border-2 ${overallStats.totalSectionsCompleted >= 6 && overallStats.overallAccuracy >= 60 ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-300 bg-gray-50 dark:bg-gray-700'}`}>
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">⚡</span>
+                    <span className="text-2xl">🎓</span>
                     <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">Speed Learner</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300">Complete 3 sections</div>
+                      <div className="font-semibold text-gray-900 dark:text-white">Master Graduate</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">Complete all 6 sections + 60% accuracy</div>
                     </div>
                   </div>
                 </div>

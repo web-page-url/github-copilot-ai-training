@@ -6,6 +6,7 @@ import { sectionData, Question, SectionData } from '@/data/section-questions';
 import QuizCard from '@/components/quiz/QuizCard';
 import Timer from '@/components/ui/Timer';
 import { SectionDatabaseService } from '@/lib/section-database-service';
+import { CertificateManager } from '@/lib/certificate-manager';
 
 interface SimpleSectionLearningProps {
   sectionNumber: number;
@@ -203,6 +204,19 @@ export default function SimpleSectionLearning({ sectionNumber }: SimpleSectionLe
     localStorage.setItem('completed_sections', JSON.stringify(completedSections));
     console.log('✅ Saved to localStorage');
 
+    // Award section certificate permanently
+    if (userInfo?.id) {
+      CertificateManager.awardSectionCertificate(userInfo.id, sectionNumber, {
+        accuracy: completionData.accuracy,
+        questionsCorrect: completionData.questionsCorrect,
+        totalQuestions: completionData.totalQuestions,
+        timeSpent: completionData.timeSpent,
+        score: completionData.score,
+        completedAt: completionData.completedAt
+      });
+      console.log(`📄 Section ${sectionNumber} certificate permanently awarded`);
+    }
+
     // Also save to database if connected
     if (isDatabaseConnected && userInfo) {
       console.log('💾 Attempting to save to database...', {
@@ -255,6 +269,18 @@ export default function SimpleSectionLearning({ sectionNumber }: SimpleSectionLe
     const timeSpent = Math.floor((new Date().getTime() - progress.startTime.getTime()) / 1000);
     const completionDate = new Date();
     const participantName = userInfo?.name || 'Learning Participant';
+    
+    // Track section certificate download
+    if (userInfo?.id) {
+      const userCerts = CertificateManager.getUserCertificates(userInfo.id);
+      const sectionCert = userCerts.sectionCertificates.find(cert => cert.sectionNumber === sectionNumber);
+      if (sectionCert) {
+        if (!sectionCert.downloadCount) sectionCert.downloadCount = 0;
+        sectionCert.downloadCount++;
+        sectionCert.lastDownloadedAt = new Date().toISOString();
+        localStorage.setItem(`user_certificates_${userInfo.id}`, JSON.stringify(userCerts));
+      }
+    }
     
     const certificateHTML = `
       <!DOCTYPE html>
