@@ -5,7 +5,7 @@ export const defaultSections: Section[] = [
   {
     id: 1,
     title: "Introduction to Modern Web Development",
-    description: "Understanding the fundamentals of web development in 2024",
+    description: "Understanding the fundamentals of web development in 2025",
     partA: {
       id: "s1-a",
       title: "Web Development Overview",

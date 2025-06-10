@@ -155,7 +155,7 @@ export default function Home() {
                   6 comprehensive modules with timed quizzes, discussions, and real-time progress tracking
                 </p>
                 <a
-                  href="/learning"
+                  href="/section-1"
                   className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 w-full justify-center"
                 >
                   <span>Start Learning</span> ⚡
@@ -382,74 +382,7 @@ export default function Home() {
         </section>
 
         {/* Admin Section */}
-        <section className="mb-16">
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 px-3 py-1 rounded-full text-sm font-medium mb-4">
-                🔒 Admin Access Required
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Administrator Dashboard
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                Comprehensive tools for monitoring learner progress and managing the platform
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Live Dashboard */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mb-4">
-                  <span className="text-white text-lg">📊</span>
-                </div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Live Monitoring</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Real-time dashboard with active sessions and platform metrics
-                </p>
-                <a
-                  href="/dashboard"
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm w-full justify-center"
-                >
-                  <span>Admin Dashboard</span> 🔍
-          </a>
-        </div>
-
-              {/* User Analytics */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
-                  <span className="text-white text-lg">👥</span>
-                </div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">User Analytics</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Comprehensive analytics with module completion rates and insights
-                </p>
-                <a
-                  href="/user-data"
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm w-full justify-center"
-                >
-                  <span>User Analytics</span> 📈
-                </a>
-              </div>
-
-              {/* Admin Scores */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-lg flex items-center justify-center mb-4">
-                  <span className="text-white text-lg">👨‍💼</span>
-                </div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Score Management</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Detailed participant scores by module with export capabilities
-                </p>
-                <a
-                  href="/admin-scores"
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm w-full justify-center"
-                >
-                  <span>Admin Scores</span> 📋
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
+      
 
         {/* Platform Features */}
         <section className="mb-16">
@@ -519,8 +452,9 @@ export default function Home() {
             </div>
             
             <p className="text-gray-400 mb-8 max-w-md mx-auto">
-              Professional web development training with real-time analytics and individual progress tracking
+              Professional Github Copilot training with real-time analytics and individual progress tracking
             </p>
+            
             
             <div className="flex flex-wrap justify-center gap-8 text-sm">
               <a href="/login" className="text-gray-400 hover:text-white transition-colors">Login</a>
@@ -532,7 +466,7 @@ export default function Home() {
             
             <div className="mt-8 pt-8 border-t border-gray-800">
               <p className="text-gray-500 text-sm">
-                © 2024 Interactive Learning Platform. Built with Next.js, Supabase, and modern web technologies.
+                © 2025 Interactive Learning Platform. Create by - Anubhav.
               </p>
             </div>
           </div>

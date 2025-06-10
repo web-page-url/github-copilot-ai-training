@@ -128,8 +128,8 @@ User Registration → Database Storage → Session Tracking → Progress Recordi
   name: "John Doe",
   email: "john@example.com", 
   mobile: "+1234567890", // optional
-  created_at: "2024-01-15T10:30:00Z",
-  last_active: "2024-01-15T15:45:00Z"
+  created_at: "2025-01-15T10:30:00Z",
+  last_active: "2025-01-15T15:45:00Z"
 }
 ```
 
@@ -144,7 +144,7 @@ User Registration → Database Storage → Session Tracking → Progress Recordi
   questions_correct: 7,
   time_spent: 420, // seconds
   accuracy: 87.5, // percentage
-  completed_at: "2024-01-15T11:00:00Z"
+  completed_at: "2025-01-15T11:00:00Z"
 }
 ```
 
@@ -157,7 +157,7 @@ User Registration → Database Storage → Session Tracking → Progress Recordi
   correct_answer: "HTML5", 
   is_correct: true,
   response_time: 15, // seconds
-  created_at: "2024-01-15T10:45:30Z"
+  created_at: "2025-01-15T10:45:30Z"
 }
 ```
 

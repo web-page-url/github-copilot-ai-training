@@ -250,6 +250,378 @@ export default function SimpleSectionLearning({ sectionNumber }: SimpleSectionLe
     setShowResults(true);
   };
 
+  const generateSectionCertificate = () => {
+    const accuracy = Math.round((progress.questionsCorrect / questions.length) * 100);
+    const timeSpent = Math.floor((new Date().getTime() - progress.startTime.getTime()) / 1000);
+    const completionDate = new Date();
+    const participantName = userInfo?.name || 'Learning Participant';
+    
+    const certificateHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Certificate - Section ${sectionNumber} - ${participantName}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
+          
+          body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+          }
+          
+          .certificate {
+            background: white;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px;
+            border-radius: 15px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            border: 12px solid #f8f9fa;
+            position: relative;
+            overflow: hidden;
+          }
+          
+          .certificate::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            right: 30px;
+            bottom: 30px;
+            border: 3px solid #e9ecef;
+            border-radius: 8px;
+            z-index: 1;
+          }
+          
+          .content {
+            position: relative;
+            z-index: 2;
+          }
+          
+          .header {
+            text-align: center;
+            margin-bottom: 40px;
+          }
+          
+          .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+          }
+          
+          .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+          }
+          
+          .subtitle {
+            font-size: 20px;
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-weight: 300;
+          }
+          
+          .section-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 30px;
+          }
+          
+          .certification-text {
+            font-size: 22px;
+            color: #495057;
+            margin: 30px 0;
+            line-height: 1.6;
+          }
+          
+          .recipient {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            color: #3498db;
+            margin: 30px 0;
+            font-weight: 700;
+            text-decoration: underline;
+            text-decoration-color: #e9ecef;
+            text-underline-offset: 8px;
+            text-decoration-thickness: 3px;
+          }
+          
+          .course-title {
+            font-size: 28px;
+            color: #2c3e50;
+            margin: 25px 0;
+            font-weight: 600;
+            font-style: italic;
+          }
+          
+          .achievement-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+          }
+          
+          .detail-item {
+            text-align: center;
+          }
+          
+          .detail-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+          }
+          
+          .detail-value {
+            font-size: 24px;
+            color: #2c3e50;
+            font-weight: 700;
+          }
+          
+          .achievements {
+            margin: 40px 0;
+            text-align: center;
+          }
+          
+          .achievement {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 10px 20px;
+            margin: 8px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          }
+          
+          .completion-statement {
+            font-size: 18px;
+            color: #495057;
+            margin: 30px 0;
+            text-align: center;
+            line-height: 1.8;
+          }
+          
+          .signature-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 2px solid #e9ecef;
+          }
+          
+          .signature {
+            text-align: center;
+            width: 220px;
+          }
+          
+          .signature-line {
+            border-top: 2px solid #2c3e50;
+            margin-bottom: 8px;
+          }
+          
+          .signature-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+          }
+          
+          .signature-subtitle {
+            font-size: 12px;
+            color: #6c757d;
+          }
+          
+          .verification-seal {
+            text-align: center;
+            flex-shrink: 0;
+          }
+          
+          .seal {
+            width: 120px;
+            height: 120px;
+            border: 4px solid #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #3498db;
+            font-weight: bold;
+            margin: 0 auto 10px;
+            background: radial-gradient(circle, rgba(52, 152, 219, 0.1) 0%, rgba(52, 152, 219, 0.05) 100%);
+          }
+          
+          .seal-text {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          
+          .certificate-id {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 10px;
+            color: #adb5bd;
+            font-family: 'Courier New', monospace;
+          }
+          
+          .github-copilot-badge {
+            background: linear-gradient(135deg, #24292e 0%, #586069 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+            display: inline-block;
+          }
+          
+          @media print {
+            body { 
+              background: white; 
+              padding: 20px; 
+            }
+            .certificate { 
+              box-shadow: none; 
+              border: 1px solid #ddd; 
+              margin: 0;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="certificate">
+          <div class="content">
+            <div class="header">
+              <div class="logo">🎓</div>
+              <div class="title">CERTIFICATE OF COMPLETION</div>
+              <div class="subtitle">GitHub Copilot Learning Platform</div>
+              <div class="section-badge">Section ${sectionNumber} Achievement</div>
+            </div>
+            
+            <div class="certification-text">
+              This certifies that
+            </div>
+            
+            <div class="recipient">${participantName}</div>
+            
+            <div class="certification-text">
+              has successfully completed
+            </div>
+            
+            <div class="course-title">${sectionInfo?.title || `GitHub Copilot Section ${sectionNumber}`}</div>
+            
+            <div class="achievement-details">
+              <div class="detail-item">
+                <div class="detail-label">Score Achieved</div>
+                <div class="detail-value">${accuracy}%</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Questions Correct</div>
+                <div class="detail-value">${progress.questionsCorrect}/${questions.length}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Time Invested</div>
+                <div class="detail-value">${Math.round(timeSpent / 60)} min</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Points Earned</div>
+                <div class="detail-value">${progress.score}</div>
+              </div>
+            </div>
+            
+            <div class="achievements">
+              ${accuracy >= 90 ? '<span class="achievement">🌟 Excellence Achievement</span>' : ''}
+              ${accuracy >= 80 ? '<span class="achievement">🎯 High Performance</span>' : ''}
+              ${accuracy >= 70 ? '<span class="achievement">✅ Proficient Completion</span>' : ''}
+              <span class="achievement">📚 Section ${sectionNumber} Mastery</span>
+              <span class="achievement">🤖 GitHub Copilot Knowledge</span>
+            </div>
+            
+            <div class="completion-statement">
+              This certificate validates the successful completion of Section ${sectionNumber} of our comprehensive GitHub Copilot training program. The recipient has demonstrated proficiency in AI-powered development concepts and practical application skills.
+            </div>
+            
+            <div class="github-copilot-badge">
+              🤖 Powered by GitHub Copilot Learning Platform
+            </div>
+            
+            <div class="signature-section">
+              <div class="signature">
+                <div class="signature-line"></div>
+                <div class="signature-title">Learning Platform</div>
+                <div class="signature-subtitle">Automated Certification System</div>
+              </div>
+              
+              <div class="verification-seal">
+                <div class="seal">✓</div>
+                <div class="seal-text">Verified Certificate</div>
+              </div>
+              
+              <div class="signature">
+                <div class="signature-line"></div>
+                <div class="signature-title">Date Issued</div>
+                <div class="signature-subtitle">${completionDate.toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}</div>
+              </div>
+            </div>
+            
+            <div class="certificate-id">
+              Certificate ID: GCP-S${sectionNumber}-${Date.now()}-${userInfo?.id?.substring(0, 8) || 'ANON'}
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Create and download the certificate
+    const blob = new Blob([certificateHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `GitHub-Copilot-Section-${sectionNumber}-Certificate-${participantName.replace(/\s+/g, '-')}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Show success message
+    alert(`🎉 Certificate downloaded successfully!\n\nSection ${sectionNumber} completion certificate has been saved to your downloads folder. You can open it in any browser and print it as a PDF.`);
+  };
+
   const getProgressPercentage = () => {
     if (!questions.length) return 0;
     return Math.round(((progress.currentQuestionIndex + 1) / questions.length) * 100);
@@ -332,6 +704,34 @@ export default function SimpleSectionLearning({ sectionNumber }: SimpleSectionLe
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-300">Time Spent</div>
               </div>
+            </div>
+
+            {/* Certificate Download Section */}
+            <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200/50 dark:border-blue-700/50">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <span className="text-4xl">🏆</span>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Certificate Available!
+                </h3>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Congratulations! You've successfully completed Section {sectionNumber}. 
+                Download your personalized certificate as proof of completion.
+              </p>
+              
+              <button
+                onClick={() => generateSectionCertificate()}
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                <span className="flex items-center gap-2">
+                  <span>📄</span>
+                  <span>Download Section Certificate</span>
+                </span>
+              </button>
+
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                Certificate will be downloaded as a PDF-ready HTML file
+              </p>
             </div>
 
             {/* Sync Status */}
