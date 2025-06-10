@@ -79,10 +79,16 @@ export class CertificateManager {
   }
 
   /**
-   * Award section certificate to user
+   * Award section certificate to user (only if 60%+ accuracy)
    */
   static awardSectionCertificate(userId: string, sectionNumber: number, completionData: SectionCompletionData): void {
     try {
+      // Only award certificate if accuracy is 60% or higher
+      if (completionData.accuracy < 60) {
+        console.log(`📄 Section ${sectionNumber} certificate NOT awarded - accuracy ${completionData.accuracy}% below 60% requirement`);
+        return;
+      }
+
       const userCerts = this.getUserCertificates(userId);
       
       // Check if section certificate already exists
@@ -96,30 +102,54 @@ export class CertificateManager {
       };
       
       if (existingIndex >= 0) {
-        // Update existing certificate
-        userCerts.sectionCertificates[existingIndex] = sectionCert;
+        // Update existing certificate only if new accuracy is better or meets requirement
+        if (completionData.accuracy >= 60) {
+          userCerts.sectionCertificates[existingIndex] = sectionCert;
+          console.log(`📄 Section ${sectionNumber} certificate updated for user: ${userId} with ${completionData.accuracy}% accuracy`);
+        }
       } else {
         // Add new certificate
         userCerts.sectionCertificates.push(sectionCert);
+        console.log(`📄 Section ${sectionNumber} certificate awarded to user: ${userId} with ${completionData.accuracy}% accuracy`);
       }
       
       localStorage.setItem(`${this.USER_CERTS_KEY}_${userId}`, JSON.stringify(userCerts));
       
-      console.log(`📄 Section ${sectionNumber} certificate awarded to user: ${userId}`);
     } catch (error) {
       console.error('Error awarding section certificate:', error);
     }
   }
 
   /**
+   * Check if user has earned certificate for specific section with 60%+ accuracy
+   */
+  static hasSectionCertificate(userId: string, sectionNumber: number): boolean {
+    try {
+      const userCerts = this.getUserCertificates(userId);
+      const sectionCert = userCerts.sectionCertificates.find(cert => cert.sectionNumber === sectionNumber);
+      return sectionCert ? sectionCert.completionData.accuracy >= 60 : false;
+    } catch (error) {
+      console.error('Error checking section certificate:', error);
+      return false;
+    }
+  }
+
+  /**
    * Check completion status and auto-award master certificate if eligible
+   * Only returns true if user currently meets requirements (not just previously earned)
    */
   static checkAndAwardMasterCertificate(userId: string, completedSections: number, overallAccuracy: number): boolean {
-    if (completedSections >= 6 && overallAccuracy >= 60 && !this.hasMasterCertificate(userId)) {
-      this.awardMasterCertificate(userId);
-      return true; // Newly awarded
+    // Must currently meet requirements
+    if (completedSections >= 6 && overallAccuracy >= 60) {
+      if (!this.hasMasterCertificate(userId)) {
+        this.awardMasterCertificate(userId);
+        console.log('🏆 Master certificate newly awarded to user:', userId);
+      }
+      return true; // Currently meets requirements
     }
-    return this.hasMasterCertificate(userId); // Already had it
+    
+    // Does not meet current requirements
+    return false;
   }
 
   /**

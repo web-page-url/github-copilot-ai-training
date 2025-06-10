@@ -733,32 +733,80 @@ export default function SimpleSectionLearning({ sectionNumber }: SimpleSectionLe
             </div>
 
             {/* Certificate Download Section */}
-            <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200/50 dark:border-blue-700/50">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <span className="text-4xl">🏆</span>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Certificate Available!
-                </h3>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Congratulations! You've successfully completed Section {sectionNumber}. 
-                Download your personalized certificate as proof of completion.
-              </p>
-              
-              <button
-                onClick={() => generateSectionCertificate()}
-                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
-              >
-                <span className="flex items-center gap-2">
-                  <span>📄</span>
-                  <span>Download Section Certificate</span>
-                </span>
-              </button>
+            {accuracy >= 60 ? (
+              <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl border border-green-200/50 dark:border-green-700/50">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <span className="text-4xl">🏆</span>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Certificate Available!
+                  </h3>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Congratulations! You've successfully completed Section {sectionNumber} with {accuracy}% accuracy. 
+                  Download your personalized certificate as proof of completion.
+                </p>
+                
+                <button
+                  onClick={() => generateSectionCertificate()}
+                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>📄</span>
+                    <span>Download Section Certificate</span>
+                  </span>
+                </button>
 
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
-                Certificate will be downloaded as a PDF-ready HTML file
-              </p>
-            </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                  Certificate will be downloaded as a PDF-ready HTML file
+                </p>
+              </div>
+            ) : (
+              <div className="mt-8 p-6 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl border border-orange-200/50 dark:border-orange-700/50">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <span className="text-4xl">📊</span>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Certificate Not Available
+                  </h3>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  You completed Section {sectionNumber} with {accuracy}% accuracy. 
+                  To earn a section certificate, you need to achieve 60% or higher accuracy.
+                </p>
+                
+                <div className="mb-6">
+                  <div className="text-center mb-3">
+                    <span className="text-lg font-semibold text-orange-600 dark:text-orange-400">
+                      Need {60 - accuracy}% more accuracy
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                    <div 
+                      className="bg-gradient-to-r from-orange-500 to-red-500 h-4 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(accuracy, 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <span>0%</span>
+                    <span className="font-semibold">60% Required</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => router.push(`/section-${sectionNumber}`)}
+                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>🔄</span>
+                    <span>Retake Section to Improve Score</span>
+                  </span>
+                </button>
+
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                  You can retake this section to improve your accuracy and unlock the certificate
+                </p>
+              </div>
+            )}
 
             {/* Sync Status */}
             {isDatabaseConnected && (

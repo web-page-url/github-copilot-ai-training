@@ -90,9 +90,8 @@ export default function MyScoresPage() {
       const userInfo = JSON.parse(storedUserInfo);
       setUserInfo(userInfo);
       
-      // Check if master certificate is permanently available
-      const masterCertAvailable = CertificateManager.hasMasterCertificate(userInfo.id);
-      setMasterCertificateAvailable(masterCertAvailable);
+      // Note: Master certificate availability will be determined after loading section data
+      // based on current completion status and accuracy requirements
       
       // Load section completion data from localStorage
       loadSectionData();
@@ -145,13 +144,24 @@ export default function MyScoresPage() {
       currentStreak: totalSections // Simple implementation - could be enhanced
     };
 
-    // Check and award master certificate if eligible
+    // Check if user currently meets master certificate requirements
     if (userInfo?.id) {
-      const masterCertAvailable = CertificateManager.checkAndAwardMasterCertificate(userInfo.id, totalSections, overallAccuracy);
-      setMasterCertificateAvailable(masterCertAvailable);
+      const meetsCurrentRequirements = CertificateManager.meetsMasterCertificateRequirements(totalSections, overallAccuracy);
       
-      if (totalSections >= 6 && overallAccuracy >= 60 && masterCertAvailable) {
-        console.log('🏆 Master certificate is permanently available for user:', userInfo.id);
+      if (meetsCurrentRequirements) {
+        // Award certificate if requirements are met and not already awarded
+        const masterCertAvailable = CertificateManager.checkAndAwardMasterCertificate(userInfo.id, totalSections, overallAccuracy);
+        setMasterCertificateAvailable(masterCertAvailable);
+        console.log('🏆 Master certificate requirements met for user:', userInfo.id);
+      } else {
+        // Requirements not met - certificate not available (even if previously earned)
+        setMasterCertificateAvailable(false);
+        console.log('❌ Master certificate requirements NOT met:', { 
+          sections: totalSections, 
+          accuracy: overallAccuracy,
+          needsSections: totalSections < 6,
+          needsAccuracy: overallAccuracy < 60 
+        });
       }
     }
 
@@ -732,6 +742,388 @@ export default function MyScoresPage() {
     return `${minutes}m ${remainingSeconds}s`;
   };
 
+  const generateSectionCertificateFromScores = (sectionNumber: number, completion: SectionCompletion) => {
+    const participantName = userInfo?.name || 'Learning Participant';
+    const sectionInfo = sectionData[sectionNumber];
+    
+    // Track section certificate download
+    if (userInfo?.id) {
+      const userCerts = CertificateManager.getUserCertificates(userInfo.id);
+      const sectionCert = userCerts.sectionCertificates.find(cert => cert.sectionNumber === sectionNumber);
+      if (sectionCert) {
+        if (!sectionCert.downloadCount) sectionCert.downloadCount = 0;
+        sectionCert.downloadCount++;
+        sectionCert.lastDownloadedAt = new Date().toISOString();
+        localStorage.setItem(`user_certificates_${userInfo.id}`, JSON.stringify(userCerts));
+      }
+    }
+    
+    const certificateHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Certificate - Section ${sectionNumber} - ${participantName}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
+          
+          body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+          }
+          
+          .certificate {
+            background: white;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px;
+            border-radius: 15px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            border: 12px solid #f8f9fa;
+            position: relative;
+            overflow: hidden;
+          }
+          
+          .certificate::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            right: 30px;
+            bottom: 30px;
+            border: 3px solid #e9ecef;
+            border-radius: 8px;
+            z-index: 1;
+          }
+          
+          .content {
+            position: relative;
+            z-index: 2;
+          }
+          
+          .header {
+            text-align: center;
+            margin-bottom: 40px;
+          }
+          
+          .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+          }
+          
+          .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+          }
+          
+          .subtitle {
+            font-size: 20px;
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-weight: 300;
+          }
+          
+          .section-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 30px;
+          }
+          
+          .certification-text {
+            font-size: 22px;
+            color: #495057;
+            margin: 30px 0;
+            line-height: 1.6;
+          }
+          
+          .recipient {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            color: #3498db;
+            margin: 30px 0;
+            font-weight: 700;
+            text-decoration: underline;
+            text-decoration-color: #e9ecef;
+            text-underline-offset: 8px;
+            text-decoration-thickness: 3px;
+          }
+          
+          .course-title {
+            font-size: 28px;
+            color: #2c3e50;
+            margin: 25px 0;
+            font-weight: 600;
+            font-style: italic;
+          }
+          
+          .achievement-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+          }
+          
+          .detail-item {
+            text-align: center;
+          }
+          
+          .detail-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+          }
+          
+          .detail-value {
+            font-size: 24px;
+            color: #2c3e50;
+            font-weight: 700;
+          }
+          
+          .achievements {
+            margin: 40px 0;
+            text-align: center;
+          }
+          
+          .achievement {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 10px 20px;
+            margin: 8px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          }
+          
+          .completion-statement {
+            font-size: 18px;
+            color: #495057;
+            margin: 30px 0;
+            text-align: center;
+            line-height: 1.8;
+          }
+          
+          .signature-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 2px solid #e9ecef;
+          }
+          
+          .signature {
+            text-align: center;
+            width: 220px;
+          }
+          
+          .signature-line {
+            border-top: 2px solid #2c3e50;
+            margin-bottom: 8px;
+          }
+          
+          .signature-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+          }
+          
+          .signature-subtitle {
+            font-size: 12px;
+            color: #6c757d;
+          }
+          
+          .verification-seal {
+            text-align: center;
+            flex-shrink: 0;
+          }
+          
+          .seal {
+            width: 120px;
+            height: 120px;
+            border: 4px solid #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #3498db;
+            font-weight: bold;
+            margin: 0 auto 10px;
+            background: radial-gradient(circle, rgba(52, 152, 219, 0.1) 0%, rgba(52, 152, 219, 0.05) 100%);
+          }
+          
+          .seal-text {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          
+          .certificate-id {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 10px;
+            color: #adb5bd;
+            font-family: 'Courier New', monospace;
+          }
+          
+          .github-copilot-badge {
+            background: linear-gradient(135deg, #24292e 0%, #586069 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+            display: inline-block;
+          }
+          
+          @media print {
+            body { 
+              background: white; 
+              padding: 20px; 
+            }
+            .certificate { 
+              box-shadow: none; 
+              border: 1px solid #ddd; 
+              margin: 0;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="certificate">
+          <div class="content">
+            <div class="header">
+              <div class="logo">🎓</div>
+              <div class="title">CERTIFICATE OF COMPLETION</div>
+              <div class="subtitle">GitHub Copilot Learning Platform</div>
+              <div class="section-badge">Section ${sectionNumber}</div>
+            </div>
+            
+            <div class="certification-text">
+              This certifies that
+            </div>
+            
+            <div class="recipient">${participantName}</div>
+            
+            <div class="certification-text">
+              has successfully completed
+            </div>
+            
+            <div class="course-title">${sectionInfo?.title || `GitHub Copilot Section ${sectionNumber}`}</div>
+            
+            <div class="achievement-details">
+              <div class="detail-item">
+                <div class="detail-label">Score Achieved</div>
+                <div class="detail-value">${completion.accuracy}%</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Questions Correct</div>
+                <div class="detail-value">${completion.questionsCorrect}/${completion.totalQuestions}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Time Invested</div>
+                <div class="detail-value">${Math.round(completion.timeSpent / 60)} min</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Points Earned</div>
+                <div class="detail-value">${completion.score}</div>
+              </div>
+            </div>
+            
+            <div class="achievements">
+              ${completion.accuracy >= 90 ? '<span class="achievement">🌟 Excellence Achievement</span>' : ''}
+              ${completion.accuracy >= 80 ? '<span class="achievement">🎯 High Performance</span>' : ''}
+              ${completion.accuracy >= 60 ? '<span class="achievement">✅ Certificate Earned</span>' : ''}
+              <span class="achievement">📚 Section ${sectionNumber} Master</span>
+              <span class="achievement">🤖 GitHub Copilot Knowledge</span>
+            </div>
+            
+            <div class="completion-statement">
+              This certificate validates the successful completion of Section ${sectionNumber} of our comprehensive GitHub Copilot training program. The recipient has demonstrated proficiency in AI-powered development concepts and practical application skills with ${completion.accuracy}% accuracy.
+            </div>
+            
+            <div class="github-copilot-badge">
+              🤖 Powered by GitHub Copilot Learning Platform
+            </div>
+            
+            <div class="signature-section">
+              <div class="signature">
+                <div class="signature-line"></div>
+                <div class="signature-title">Learning Platform</div>
+                <div class="signature-subtitle">Automated Certification System</div>
+              </div>
+              
+              <div class="verification-seal">
+                <div class="seal">✓</div>
+                <div class="seal-text">Verified Certificate</div>
+              </div>
+              
+              <div class="signature">
+                <div class="signature-line"></div>
+                <div class="signature-title">Date Issued</div>
+                <div class="signature-subtitle">${new Date(completion.completedAt).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}</div>
+              </div>
+            </div>
+            
+            <div class="certificate-id">
+              Certificate ID: GCP-S${sectionNumber}-${Date.now()}-${userInfo?.id?.substring(0, 8) || 'ANON'}
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Create and download the certificate
+    const blob = new Blob([certificateHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `GitHub-Copilot-Section-${sectionNumber}-Certificate-${participantName.replace(/\s+/g, '-')}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Show success message
+    alert(`🎉 Section ${sectionNumber} Certificate downloaded successfully!\n\nYour certificate has been saved to your downloads folder. You can open it in any browser and print it as a PDF.`);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center p-4">
@@ -1096,7 +1488,9 @@ export default function MyScoresPage() {
                       <div className="text-right">
                         {isCompleted ? (
                           <div>
-                            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            <div className={`text-2xl font-bold ${
+                              completion.accuracy >= 60 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'
+                            }`}>
                               {completion.accuracy}%
                             </div>
                             <div className="text-sm text-gray-600 dark:text-gray-300">
@@ -1108,6 +1502,26 @@ export default function MyScoresPage() {
                             <div className="text-xs text-gray-500">
                               {new Date(completion.completedAt).toLocaleDateString()}
                             </div>
+                            {/* Certificate Status */}
+                            {completion.accuracy >= 60 ? (
+                              <div className="mt-2 space-y-2">
+                                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                  <span>🏆</span>
+                                  <span>Certificate Available</span>
+                                </div>
+                                <button
+                                  onClick={() => generateSectionCertificateFromScores(section.id, completion)}
+                                  className="block w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-all duration-200 transform hover:scale-105"
+                                >
+                                  📄 Download Certificate
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-1 mt-2 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
+                                <span>📊</span>
+                                <span>Need 60% for Certificate</span>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div>
@@ -1120,6 +1534,9 @@ export default function MyScoresPage() {
                             >
                               Start
                             </button>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Need 60%+ for certificate
+                            </div>
                           </div>
                         )}
                       </div>

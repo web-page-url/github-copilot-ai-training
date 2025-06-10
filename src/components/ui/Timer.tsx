@@ -24,7 +24,6 @@ export default function Timer({
 }: TimerProps) {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [isActive, setIsActive] = useState(autoStart);
-  const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const sizeClasses = {
@@ -57,7 +56,7 @@ export default function Timer({
   };
 
   useEffect(() => {
-    if (isActive && !isPaused && timeLeft > 0) {
+    if (isActive && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           const newTime = prev - 1;
@@ -83,26 +82,7 @@ export default function Timer({
         clearInterval(intervalRef.current);
       }
     };
-  }, [isActive, isPaused, timeLeft, onComplete, onTick]);
-
-  const start = () => {
-    setIsActive(true);
-    setIsPaused(false);
-  };
-
-  const pause = () => {
-    setIsPaused(true);
-  };
-
-  const resume = () => {
-    setIsPaused(false);
-  };
-
-  const reset = () => {
-    setTimeLeft(initialTime);
-    setIsActive(false);
-    setIsPaused(false);
-  };
+  }, [isActive, timeLeft, onComplete, onTick]);
 
   const currentColor = getColorBasedOnTime();
   const progress = getProgressPercentage();
@@ -152,55 +132,12 @@ export default function Timer({
         </div>
       </div>
 
-      {/* Timer Controls */}
-      <div className="flex gap-2">
-        {!isActive && timeLeft > 0 && (
-          <button
-            onClick={start}
-            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
-          >
-            Start
-          </button>
-        )}
-        
-        {isActive && !isPaused && (
-          <button
-            onClick={pause}
-            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
-          >
-            Pause
-          </button>
-        )}
-        
-        {isActive && isPaused && (
-          <button
-            onClick={resume}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-          >
-            Resume
-          </button>
-        )}
-        
-        <button
-          onClick={reset}
-          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
-        >
-          Reset
-        </button>
-      </div>
-
       {/* Status indicator */}
       <div className="text-sm text-gray-600 dark:text-gray-400">
-        {isActive && !isPaused && (
+        {isActive && (
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
             Running
-          </span>
-        )}
-        {isPaused && (
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-            Paused
           </span>
         )}
         {!isActive && timeLeft === 0 && (
