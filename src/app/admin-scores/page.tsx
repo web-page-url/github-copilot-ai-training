@@ -3,6 +3,129 @@
 import { useState, useEffect } from 'react';
 import { AdminDatabaseService, AdminUserProgress, AdminSectionStats, AdminOverallStats } from '@/lib/admin-database-service';
 
+// Password Authentication Component
+const AdminAuthGuard = ({ children }: { children: React.ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Static admin password - you can change this
+  const ADMIN_PASSWORD = 'CopilotAdmin2025!';
+  const AUTH_STORAGE_KEY = 'admin-auth-token';
+
+  useEffect(() => {
+    // Check if user is already authenticated from localStorage
+    const savedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (savedAuth === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+    }
+    setIsLoading(false);
+  }, []);
+
+  const handleAuthentication = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (password === ADMIN_PASSWORD) {
+      // Save authentication in localStorage
+      localStorage.setItem(AUTH_STORAGE_KEY, password);
+      setIsAuthenticated(true);
+    } else {
+      setError('Invalid password. Please try again.');
+      setPassword('');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    setIsAuthenticated(false);
+    setPassword('');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md border border-gray-200 dark:border-gray-700">
+          <div className="text-center mb-8">
+            <div className="text-6xl mb-4">🔐</div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Admin Access Required
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300">
+              Enter the admin password to access the dashboard
+            </p>
+          </div>
+
+          <form onSubmit={handleAuthentication} className="space-y-6">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Admin Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400"
+                placeholder="Enter admin password"
+                required
+                autoFocus
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">❌</span>
+                  {error}
+                </div>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              🚀 Access Admin Dashboard
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              🔒 Secure authentication required for data protection
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // User is authenticated, show the admin dashboard with logout option
+  return (
+    <div>
+      {/* Logout Button */}
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2"
+        >
+          🔓 Logout
+        </button>
+      </div>
+      {children}
+    </div>
+  );
+};
+
 export default function AdminScoresPage() {
   const [allProgress, setAllProgress] = useState<AdminUserProgress[]>([]);
   const [sectionStats, setSectionStats] = useState<AdminSectionStats[]>([]);
@@ -172,59 +295,61 @@ export default function AdminScoresPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center p-4">
-        <div className="text-center space-y-6">
-          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
-              📊 Loading Admin Dashboard
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300">
-              Fetching sections data from database...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isDatabaseConnected) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700 text-center">
-            <div className="text-6xl mb-4">🔌</div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Database Connection Required
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              The admin dashboard requires a database connection to display sections data.
-            </p>
-            <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-orange-800 dark:text-orange-400 mb-2">
-                Setup Instructions:
-              </h3>
-              <ol className="text-left text-orange-700 dark:text-orange-300 text-sm space-y-1">
-                <li>1. Add your Supabase credentials to <code>.env.local</code></li>
-                <li>2. Run the database schema from <code>database-questions-schema.sql</code></li>
-                <li>3. Restart the development server</li>
-              </ol>
+  // Create the admin dashboard content
+  const adminDashboard = () => {
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center p-4">
+          <div className="text-center space-y-6">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
+                📊 Loading Admin Dashboard
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300">
+                Fetching sections data from database...
+              </p>
             </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-            >
-              🔄 Retry Connection
-            </button>
           </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  return (
+    if (!isDatabaseConnected) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700 text-center">
+              <div className="text-6xl mb-4">🔌</div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                Database Connection Required
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                The admin dashboard requires a database connection to display sections data.
+              </p>
+              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-orange-800 dark:text-orange-400 mb-2">
+                  Setup Instructions:
+                </h3>
+                <ol className="text-left text-orange-700 dark:text-orange-300 text-sm space-y-1">
+                  <li>1. Add your Supabase credentials to <code>.env.local</code></li>
+                  <li>2. Run the database schema from <code>database-questions-schema.sql</code></li>
+                  <li>3. Restart the development server</li>
+                </ol>
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+              >
+                🔄 Retry Connection
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -633,5 +758,13 @@ export default function AdminScoresPage() {
         )}
       </div>
     </div>
+    );
+  };
+
+  // Wrap the entire admin dashboard with authentication guard
+  return (
+    <AdminAuthGuard>
+      {adminDashboard()}
+    </AdminAuthGuard>
   );
 } 
