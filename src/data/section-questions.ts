@@ -26,7 +26,7 @@ export const sectionData: Record<number, SectionData> = {
     title: "What is GitHub Copilot?",
     description: "Understanding GitHub Copilot as an AI pair programmer",
     difficulty: "beginner",
-    duration: 25,
+    duration: 2.5,
     questions: [
       {
         id: "copilot-1-1",
@@ -91,7 +91,7 @@ export const sectionData: Record<number, SectionData> = {
     title: "Key Features and Plans",
     description: "Exploring GitHub Copilot's features and subscription options",
     difficulty: "beginner",
-    duration: 30,
+    duration: 2.5,
     questions: [
       {
         id: "copilot-2-1",
@@ -156,7 +156,7 @@ export const sectionData: Record<number, SectionData> = {
     title: "Working with VS Code",
     description: "Using GitHub Copilot effectively in Visual Studio Code",
     difficulty: "intermediate",
-    duration: 35,
+    duration: 2.5,
     questions: [
       {
         id: "copilot-3-1",
@@ -221,7 +221,7 @@ export const sectionData: Record<number, SectionData> = {
     title: "Framework-Specific Support",
     description: "How GitHub Copilot works with different frameworks",
     difficulty: "intermediate",
-    duration: 40,
+    duration: 2.5,
     questions: [
       {
         id: "copilot-4-1",
@@ -286,7 +286,7 @@ export const sectionData: Record<number, SectionData> = {
     title: "Responsible Use and Limitations",
     description: "Understanding responsible AI practices with GitHub Copilot",
     difficulty: "advanced",
-    duration: 45,
+    duration: 2.5,
     questions: [
       {
         id: "copilot-5-1",
@@ -351,7 +351,7 @@ export const sectionData: Record<number, SectionData> = {
     title: "Hands-On Examples Overview",
     description: "Practical examples of using GitHub Copilot",
     difficulty: "advanced",
-    duration: 50,
+    duration: 2.5,
     questions: [
       {
         id: "copilot-6-1",
