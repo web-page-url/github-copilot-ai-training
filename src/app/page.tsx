@@ -98,7 +98,7 @@ export default function Home() {
               🚀 Start Your Learning Journey
             </h3>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Choose your path and begin building professional web development skills with our interactive platform
+              Choose your path and begin learning GitHub Copilot AI with our interactive platform
             </p>
           </div>
 
@@ -458,9 +458,9 @@ export default function Home() {
             
             <div className="flex flex-wrap justify-center gap-8 text-sm">
               <a href="/login" className="text-gray-400 hover:text-white transition-colors">Login</a>
-              <a href="/register" className="text-gray-400 hover:text-white transition-colors">Registration</a>
-              <a href="/learning" className="text-gray-400 hover:text-white transition-colors">Learning Modules</a>
-              <a href="/dashboard" className="text-gray-400 hover:text-white transition-colors">Admin Dashboard</a>
+              <a href="/" className="text-gray-400 hover:text-white transition-colors">Home</a>
+              <a href="/section-1" className="text-gray-400 hover:text-white transition-colors">Learning Modules</a>
+              <a href="/admin-scores" className="text-gray-400 hover:text-white transition-colors">Admin Dashboard</a>
               <a href="/transparency" className="text-gray-400 hover:text-white transition-colors">Documentation</a>
             </div>
             
